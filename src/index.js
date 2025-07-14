@@ -1,5 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
+import { Op } from "sequelize";
 import { z } from "zod";
 import { User } from "./schema.js";
 
@@ -12,7 +13,24 @@ app.get("/", (req, res) => {
 });
 
 app.get("/users", async (req, res) => {
-  res.json(await User.findAll());
+  
+  const filters = [];
+  
+  if (req.query.name) {
+    filters.push({ name: { [Op.iLike]: `%${req.query.name}%` } });
+  }
+  if (req.query.mail) {
+    filters.push({ mail: { [Op.iLike]: `%${req.query.mail}%` } });
+  }
+
+  const where = filters.length > 0 ? { [Op.or]: filters } : {};
+
+  const users = await User.findAll({
+    limit: 10,
+    where,
+  });
+
+  res.json(users);
 });
 
 const createUserSchema = z.object({
@@ -22,37 +40,82 @@ const createUserSchema = z.object({
 });
 
 app.post("/users", async (req, res) => {
-  
-  const body = createUserSchema.safeParse(req.body)
-  
-  if (! body.success) {
+  const body = createUserSchema.safeParse(req.body);
+
+  if (!body.success) {
     res.sendStatus(400);
     return;
   }
 
   const user = await User.create(body.data);
   res.status(201);
-  res.json(user)
-
+  res.json(user);
 });
 
 app.get("/users/:id", async (req, res) => {
-
-  const {id} = req.params
+  const { id } = req.params;
 
   const [user] = await User.findAll({
     where: {
-      id
-    }
-  })
+      id,
+    },
+  });
 
-  if (! user) {
+  if (!user) {
     res.sendStatus(404);
     return;
   }
 
-  res.json(user)
+  res.json(user);
+});
 
+const patchUserSchema = createUserSchema
+  .partial()
+  .extend({ active: z.boolean().optional() });
+
+app.patch("/users/:id", async (req, res) => {
+  const body = patchUserSchema.safeParse(req.body);
+
+  if (!body.success) {
+    res.sendStatus(400);
+    return;
+  }
+
+  const { id } = req.params;
+
+  const [user] = await User.findAll({
+    where: {
+      id,
+    },
+  });
+
+  if (!user) {
+    res.sendStatus(404);
+    return;
+  }
+
+  await user.update(body.data);
+
+  res.json(user);
+});
+
+app.delete("/users/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const [user] = await User.findAll({
+    where: {
+      id,
+    },
+  });
+
+  if (!user) {
+    res.sendStatus(404);
+    return;
+  }
+
+  await user.destroy();
+
+  res.json(user);
 });
 
 app.listen(3000, () => {
