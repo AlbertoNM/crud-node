@@ -11,15 +11,22 @@ export const User = sequelize.define(
     },
     name: {
       type: DataTypes.STRING,
+      allowNull: false
     },
     mail: {
       type: DataTypes.STRING,
+      allowNull: false
     },
     password: {
       type: DataTypes.STRING,
+      allowNull: false
+    },
+    active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
   },
   { timestamps: true }
 );
 
-await sequelize.sync()
+await sequelize.sync({alter: true});
