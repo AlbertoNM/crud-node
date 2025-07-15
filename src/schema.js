@@ -1,17 +1,18 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "./db.js";
+import { DataTypes } from "sequelize"; // Importa tipos de datos de Sequelize
+import { sequelize } from "./db.js"; // Importa la instancia de conexión a la base de datos
 
+// Define el modelo User con sus campos y propiedades
 export const User = sequelize.define(
-  "User",
+  "User", // Nombre del modelo
   {
     id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
+      type: DataTypes.INTEGER, // Tipo entero
+      primaryKey: true,        // Clave primaria
+      autoIncrement: true,     // Autoincremental
     },
     name: {
-      type: DataTypes.STRING,
-      allowNull: false
+      type: DataTypes.STRING,  // Cadena de texto
+      allowNull: false         // No permite nulos
     },
     mail: {
       type: DataTypes.STRING,
@@ -22,11 +23,11 @@ export const User = sequelize.define(
       allowNull: false
     },
     active: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      type: DataTypes.BOOLEAN,  // Booleano (activo/inactivo)
+      defaultValue: true,       // Valor por defecto: true
     },
   },
-  { timestamps: true }
+  { timestamps: true } // Agrega createdAt y updatedAt automáticamente
 );
 
-await sequelize.sync({alter: true});
+await sequelize.sync({ alter: true }); // Sincroniza el modelo con la base de datos, alterando tablas si es necesario
